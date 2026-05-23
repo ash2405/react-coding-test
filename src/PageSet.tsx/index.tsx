@@ -20,12 +20,11 @@ export const PageSet = ()=>{
               count={count}
               setLimit={setLimit}
               limit={limit}
-              skip={skip}
               setSkip={setSkip}
               current={current} 
               setCurrent={setCurrent}
             />
-            <Products detail={productList} count={count} />
+            <Products detail={productList} />
           </>
         )}
       </div>

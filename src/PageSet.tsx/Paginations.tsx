@@ -4,7 +4,6 @@ export const Paginations = ({
   count,
   setLimit,
   limit,
-  skip,
   setSkip,
   current,
   setCurrent,

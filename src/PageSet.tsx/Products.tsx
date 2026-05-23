@@ -1,6 +1,6 @@
 import { ProductItem } from "./ProductItem";
 
-export const Products = ({ detail, count }) => {
+export const Products = ({ detail }) => {
   return (
     <>
       {detail?.length === 0 ? (
