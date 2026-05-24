@@ -1,23 +1,21 @@
 import { useGetFolder } from "./hooks";
 import { TreeNodes } from "./Treenodes";
-import { IoIosArrowForward } from "react-icons/io";
 import { FaFileAlt } from "react-icons/fa";
-import { FaChevronDown } from "react-icons/fa";
 import { useCallback, useState } from "react";
+import { FaFolderOpen } from "react-icons/fa";
 
-export const createNode = (name) => {
+export const createNode = (name, isFolder) => {
   return {
     id: crypto.randomUUID(),
     name,
-    isFolder: !name.includes("."),
+    isFolder: isFolder,
     isOpen: false,
     children: [],
   };
 };
 
 export const openNode = (list, nodeID) => {
-  console.log("list", list);
-  console.log("nodeID", nodeID);
+
   return list.map((item) => {
     if (item.id === nodeID) {
       return {
@@ -31,9 +29,10 @@ export const openNode = (list, nodeID) => {
     };
   });
 };
-export const updateTree = (filelist, node, parentID) => {
+export const updateTree = (filelist, node, nodeID) => {
+
   return filelist?.map((item) => {
-    if (item.id === parentID) {
+    if (item.id === nodeID) {
       return {
         ...item,
         children: [...item.children, node],
@@ -41,27 +40,51 @@ export const updateTree = (filelist, node, parentID) => {
     }
     return {
       ...item,
-      children: updateTree(item.children, node, parentID),
+      children: updateTree(item.children, node, nodeID),
     };
   });
 };
 export const Files = () => {
   const filelist = useGetFolder();
   const [treeList, setTreeList] = useState(filelist);
+  const [nodeID, setNodeID] = useState("");
 
-  const addNode = useCallback((parentID) => {
+  const addNode = useCallback((isFolder) => {
     const name = prompt("enter the name");
-    const node = createNode(name);
+    const node = createNode(name, isFolder);
+    setTreeList((pre) => [...updateTree(pre, node, nodeID)]);
+    setTimeout(() => {
+      setNodeID('')
+    }, 300);
+  }, [nodeID]);
 
-    setTreeList((pre) => [...updateTree(pre, node, parentID)]);
-  }, []);
 
   const setOpen = useCallback((nodeID) => {
     setTreeList((pre) => [...openNode(pre, nodeID)]);
   }, []);
   return (
     <div className="ml-5">
-      <TreeNodes nodes={treeList} addNode={addNode} setOpen={setOpen} />
+      <div className="flex  my-4 w-[200px] align-middle">
+        <p className="flex-2">File Explorer</p>
+        {nodeID && (
+          <>
+            <FaFileAlt
+              className="m-2 cursor-pointer"
+              onClick={() => addNode(false)}
+            />
+            <FaFolderOpen
+              className=" m-2 cursor-pointer"
+              onClick={() => addNode(true)}
+            />
+          </>
+        )}
+      </div>
+      <TreeNodes
+        nodes={treeList}
+        addNode={setNodeID}
+        nodeID={nodeID}
+        setOpen={setOpen}
+      />
     </div>
   );
 };
