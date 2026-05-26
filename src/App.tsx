@@ -1,4 +1,5 @@
 import { Files } from "./Files/index.tsx"
+import { NastedChecks } from "./NastedChecks/index.tsx"
 import { OTP } from "./OTP"
 import { PageSet } from "./PageSet.tsx"
 import { Search } from "./Search/index.tsx"
@@ -10,7 +11,11 @@ function App() {
     // <PageSet />
     // <Search />
     // <Files />
-    <OTP />
+    // <OTP />
+    <div className="grid place-content-center w-[100vw]">
+
+    <NastedChecks />
+    </div>
   )
 }
 
