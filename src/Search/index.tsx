@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useGetList } from "./hook";
 
 export const Search = () => {
-  const [, setInput] = useState("");
+  const [input, setInput] = useState("");
   const [search, setSearch] = useState("");
 
   const { data, loader } = useGetList(search);
