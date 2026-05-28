@@ -1,102 +1,128 @@
-import { useEffect, useRef, useState } from "react";
+import {
+  KeyboardEvent,
+  ClipboardEvent,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
-const OTP_LENGTH = 6;
+const OTP_LENGTH = 3;
 
 export const OTP = () => {
-  const [otp, setOtp] = useState<string[]>(
-    Array(OTP_LENGTH).fill("")
-  );
+  const initialOtp = useMemo(() => Array(OTP_LENGTH).fill(""), []);
+
+  const [inputs, setInputs] = useState<string[]>(initialOtp);
 
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   useEffect(() => {
-    const randomOtp =
-      Math.floor(Math.random() * 900000) + 100000;
-
-    console.log("Generated OTP:", randomOtp);
+    inputRefs.current[0]?.focus();
   }, []);
 
-  const handleKeyUp = (
-    e: React.KeyboardEvent<HTMLInputElement>,
-    index: number
-  ) => {
-    const key = e.key;
+  const focusInput = (index: number) => {
+    inputRefs.current[index]?.focus();
+    inputRefs.current[index]?.select();
+  };
 
-    const updatedOtp = [...otp];
+  const updateOtp = (value: string, index: number) => {
+    setInputs((prev) => {
+      const updated = [...prev];
+      updated[index] = value;
 
-    // Handle numbers
+      return updated;
+    });
+  };
+
+  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>, index: number) => {
+    const { key } = e;
+
+    if (
+      ["ArrowLeft", "ArrowRight", "Backspace"].includes(key) ||
+      /^\d$/.test(key)
+    ) {
+      e.preventDefault();
+    }
+
     if (/^\d$/.test(key)) {
-      updatedOtp[index] = key;
-      setOtp(updatedOtp);
+      updateOtp(key, index);
 
-      // Move focus to next input
       if (index < OTP_LENGTH - 1) {
-        inputRefs.current[index + 1]?.focus();
+        focusInput(index + 1);
       }
+
+      return;
     }
 
-    // Handle backspace
     if (key === "Backspace") {
-      updatedOtp[index] = "";
-      setOtp(updatedOtp);
+      setInputs((prev) => {
+        const updated = [...prev];
 
-      // Move back if current already empty
-      if (!otp[index] && index > 0) {
-        inputRefs.current[index - 1]?.focus();
-      }
+        if (updated[index]) {
+          updated[index] = "";
+          return updated;
+        }
+
+        if (index > 0) {
+          updated[index - 1] = "";
+          focusInput(index - 1);
+        }
+
+        return updated;
+      });
+
+      return;
     }
 
-    // Handle paste (Ctrl + V)
-    if (e.ctrlKey && key.toLowerCase() === "v") {
-      navigator.clipboard.readText().then((text) => {
-        const pasted = text
-          .replace(/\D/g, "")
-          .slice(0, OTP_LENGTH)
-          .split("");
+    if (key === "ArrowLeft") {
+      if (index > 0) {
+        focusInput(index - 1);
+      }
 
-        if (!pasted.length) return;
+      return;
+    }
 
-        const filledOtp = Array(OTP_LENGTH)
-          .fill("")
-          .map((_, i) => pasted[i] || "");
-
-        setOtp(filledOtp);
-
-        const focusIndex =
-          pasted.length >= OTP_LENGTH
-            ? OTP_LENGTH - 1
-            : pasted.length;
-
-        inputRefs.current[focusIndex]?.focus();
-      });
+    if (key === "ArrowRight") {
+      if (index < OTP_LENGTH - 1) {
+        focusInput(index + 1);
+      }
     }
   };
 
-  return (
-    <div className="grid place-content-center h-screen gap-4">
-      <h1 className="text-2xl font-bold text-center">
-        OTP Verification
-      </h1>
+  const otpValue = inputs.join("");
 
+  return (
+    <div className="grid h-screen place-content-center">
       <div className="flex gap-3">
-        {otp.map((digit, index) => (
+        {inputs.map((item, index) => (
           <input
             key={index}
             ref={(el) => {
               inputRefs.current[index] = el;
             }}
             type="text"
-            value={digit}
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            aria-label={`OTP digit ${index + 1}`}
             maxLength={1}
-            onKeyUp={(e) => handleKeyUp(e, index)}
-            className="w-12 h-12 border-2 rounded-md text-center text-xl focus:outline-none focus:border-blue-500"
+            value={item}
+            onKeyDown={(e) => handleKeyDown(e, index)}
+            className="
+              h-12
+              w-12
+              rounded-md
+              border-2
+              text-center
+              text-xl
+              outline-none
+              transition-all
+              focus:border-blue-600
+            "
           />
         ))}
       </div>
 
-      <p className="text-center">
-        OTP: {otp.join("")}
-      </p>
+      <p className="mt-5 text-center text-lg">OTP: {otpValue}</p>
     </div>
   );
 };
